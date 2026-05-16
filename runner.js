@@ -8,6 +8,8 @@ const statusRoute = require('./routes/status');
 const logsRoute = require('./routes/logs');
 const reposRoute = require('./routes/repos');
 const healthRoute = require('./routes/health');
+const updaterRoute = require('./routes/updater');
+const autoUpdater = require('./lib/autoUpdater');
 const { getApp, removeApp } = require('./lib/registry');
 const { killAppProcess, deployApp } = require('./lib/pipeline');
 
@@ -30,6 +32,7 @@ app.use('/api/sites', statusRoute); // Map both status and sites to the same rou
 app.use('/api/logs', logsRoute);
 app.use('/api/repos', reposRoute);
 app.use('/api/health', healthRoute);
+app.use('/api/updater', updaterRoute);
 
 // Redeploy
 app.post('/api/redeploy/:name', async (req, res) => {
@@ -75,4 +78,7 @@ app.delete('/api/delete/:name', async (req, res) => {
 const port = process.env.PORT || 4500;
 app.listen(port, () => {
   console.log(`Runner listening on port ${port}`);
+  if (process.env.AUTO_UPDATE !== 'false') {
+    autoUpdater.start();
+  }
 });
