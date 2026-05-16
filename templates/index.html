@@ -3,337 +3,419 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>internal server</title>
+  <title>Companion Server · Internal</title>
   <style>
+    :root {
+      --bg: #1d1d1d;
+      --surface: #2b2b2b;
+      --surface-2: #3a3a3a;
+      --surface-3: #4a4a4a;
+      --text: #ffffff;
+      --muted: #b0b0b0;
+      --dim: #7a7a7a;
+      --accent: #e95420;        /* Ubuntu orange */
+      --accent-hover: #f06b3c;
+      --accent-soft: rgba(233, 84, 32, 0.15);
+      --success: #2ec27e;
+      --warning: #f5c211;
+      --danger: #e01b24;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --border: 1px solid #3a3a3a;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-      background: #0a0a0a;
-      color: #ffffff;
+      font-family: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      line-height: 1.5;
     }
 
     .app {
-      max-width: 480px;
+      max-width: 720px;
       margin: 0 auto;
-      padding: 48px 24px 40px;
-      min-height: 100vh;
+      padding: 28px 20px 60px;
       display: flex;
       flex-direction: column;
-      gap: 0;
-    }
-
-    /* HEADER */
-    .header {
-      display: flex;
-      align-items: center;
       gap: 18px;
-      margin-bottom: 40px;
     }
 
-    .logo-wrap {
-      flex-shrink: 0;
-      width: 52px;
-      height: 44px;
+    /* TOP BAR */
+    .topbar {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 18px;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: var(--border);
     }
 
-    .header h1 {
-      font-size: 30px;
-      font-weight: 700;
-      letter-spacing: -0.04em;
-      color: #ffffff;
-    }
-
-    /* STATUS PILLS ROW */
-    .pills {
+    .brand {
       display: flex;
-      gap: 10px;
-      margin-bottom: 34px;
-    }
-
-    .pill {
-      flex: 1;
-      background: #1c1c1e;
-      border-radius: 100px;
-      padding: 10px 12px;
-      font-size: 12px;
-      font-weight: 500;
-      color: #8e8e93;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      transition: color .3s;
+      align-items: center;
+      gap: 12px;
       min-width: 0;
     }
 
-    .pill.online { color: #30d158; }
-    .pill.offline { color: #ff453a; }
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(233, 84, 32, 0.35);
+    }
 
-    /* SECTION LABEL */
-    .section-label {
+    .brand-text { min-width: 0; }
+    .brand-title {
       font-size: 15px;
-      font-weight: 500;
-      color: #8e8e93;
-      margin-bottom: 10px;
+      font-weight: 600;
       letter-spacing: -0.01em;
-    }
-
-    /* CARDS */
-    .card {
-      background: #1c1c1e;
-      border-radius: 20px;
+      white-space: nowrap;
       overflow: hidden;
-      margin-bottom: 14px;
+      text-overflow: ellipsis;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--dim);
+      font-family: 'Ubuntu Mono', 'JetBrains Mono', 'SF Mono', monospace;
     }
 
-    .card-inner {
-      padding: 18px 18px 16px;
+    .status-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--surface-2);
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .status-dot::before {
+      content: '';
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--dim);
+    }
+    .status-dot.online { color: var(--success); }
+    .status-dot.online::before { background: var(--success); box-shadow: 0 0 8px var(--success); }
+    .status-dot.offline { color: var(--danger); }
+    .status-dot.offline::before { background: var(--danger); }
+
+    /* STAT GRID */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .stat {
+      background: var(--surface);
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+    }
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--dim);
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
     }
 
-    /* REPO LIST */
-    .search-input {
-      width: 100%;
-      background: #2c2c2e;
+    /* CARD */
+    .card {
+      background: var(--surface);
+      border: var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 18px 10px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .card-body { padding: 0 18px 16px; }
+
+    /* UPDATER */
+    .updater {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+    }
+    .updater-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .updater-info { flex: 1; min-width: 0; }
+    .updater-line1 {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .updater-line2 {
+      font-size: 11px;
+      color: var(--dim);
+      font-family: 'Ubuntu Mono', 'SF Mono', monospace;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .updater-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 100px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .updater-badge.uptodate { background: rgba(46,194,126,.15); color: var(--success); }
+    .updater-badge.available { background: var(--accent-soft); color: var(--accent); }
+    .updater-badge.checking { background: rgba(245,194,17,.15); color: var(--warning); }
+    .updater-badge.error { background: rgba(224,27,36,.15); color: var(--danger); }
+
+    .btn {
+      background: var(--surface-2);
+      color: var(--text);
       border: none;
       border-radius: 10px;
-      padding: 9px 12px;
-      font-size: 14px;
-      color: #ffffff;
+      padding: 9px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background .15s, transform .05s;
+      white-space: nowrap;
+    }
+    .btn:hover:not(:disabled) { background: var(--surface-3); }
+    .btn:active:not(:disabled) { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-accent { background: var(--accent); }
+    .btn-accent:hover:not(:disabled) { background: var(--accent-hover); }
+
+    /* SEARCH */
+    .search {
+      width: 100%;
+      background: var(--bg);
+      border: var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text);
+      font-family: inherit;
       outline: none;
-      margin-bottom: 12px;
+      transition: border-color .15s;
     }
+    .search:focus { border-color: var(--accent); }
+    .search::placeholder { color: var(--dim); }
 
-    .search-input::placeholder { color: #636366; }
-
+    /* REPO LIST */
     .repo-list {
-      max-height: 220px;
+      max-height: 260px;
       overflow-y: auto;
+      margin-top: 10px;
       scrollbar-width: thin;
-      scrollbar-color: #3a3a3c transparent;
+      scrollbar-color: var(--surface-3) transparent;
     }
-
-    .repo-list::-webkit-scrollbar { width: 4px; }
-    .repo-list::-webkit-scrollbar-track { background: transparent; }
-    .repo-list::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
+    .repo-list::-webkit-scrollbar { width: 6px; }
+    .repo-list::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
 
     .repo-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 9px 10px;
+      gap: 12px;
+      padding: 10px 12px;
       border-radius: 10px;
       cursor: pointer;
       transition: background .15s;
     }
-
-    .repo-item:hover { background: #2c2c2e; }
-    .repo-item.selected { background: #2c2c2e; }
+    .repo-item:hover { background: var(--surface-2); }
+    .repo-item.selected { background: var(--accent-soft); }
 
     .repo-icon {
-      width: 30px;
-      height: 30px;
-      background: #3a3a3c;
+      width: 32px; height: 32px;
+      background: var(--surface-2);
       border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
       flex-shrink: 0;
     }
+    .repo-item.selected .repo-icon { background: var(--accent); }
 
     .repo-info { flex: 1; min-width: 0; }
-
     .repo-name {
       font-size: 13px;
       font-weight: 500;
-      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .repo-id {
+      font-size: 11px;
+      color: var(--dim);
+      margin-top: 1px;
+      font-family: 'Ubuntu Mono', 'SF Mono', monospace;
+    }
+
+    .repo-check {
+      width: 18px; height: 18px;
+      border: 1.5px solid var(--surface-3);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .repo-item.selected .repo-check {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .repo-check svg { display: none; }
+    .repo-item.selected .repo-check svg { display: block; }
+
+    .empty {
+      padding: 28px 12px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--dim);
+    }
+
+    /* CONSOLE */
+    .console {
+      background: #161616;
+      font-family: 'Ubuntu Mono', 'JetBrains Mono', 'SF Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      max-height: 280px;
+      overflow-y: auto;
+      padding: 14px 18px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--surface-3) transparent;
+      min-height: 140px;
+    }
+    .console::-webkit-scrollbar { width: 6px; }
+    .console::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
+
+    .log { white-space: pre-wrap; word-break: break-all; color: var(--muted); }
+    .log.error { color: #ff6b6b; }
+    .log.warning { color: var(--warning); }
+    .log.success { color: var(--success); }
+    .log.info { color: var(--muted); }
+
+    .scroll-notice {
+      display: none;
+      text-align: center;
+      padding: 8px;
+      font-size: 11px;
+      color: var(--dim);
+      background: var(--surface-2);
+      cursor: pointer;
+    }
+    .scroll-notice:hover { color: var(--text); }
+    .scroll-notice.show { display: block; }
+
+    /* DEPLOY BAR */
+    .deploy-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+    }
+    .deploy-selected {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px;
+      min-width: 0;
+    }
+    .deploy-placeholder { font-size: 13px; color: var(--dim); }
+    .deploy-name {
+      font-size: 13px;
+      font-weight: 500;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    .repo-id {
-      font-size: 11px;
-      color: #636366;
-      margin-top: 1px;
-      font-family: 'SF Mono', 'Fira Mono', monospace;
-    }
-
-    .repo-check {
-      width: 18px;
-      height: 18px;
-      border: 1.5px solid #3a3a3c;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: background .15s, border-color .15s;
-    }
-
-    .repo-item.selected .repo-check {
-      background: #0a84ff;
-      border-color: #0a84ff;
-    }
-
-    .repo-check svg { display: none; }
-    .repo-item.selected .repo-check svg { display: block; }
-
-    .empty-state {
-      padding: 20px 10px;
-      text-align: center;
-      font-size: 13px;
-      color: #636366;
-    }
-
-    /* SELECTED DEPLOY INFO */
-    .deploy-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      background: #2c2c2e;
+    .deploy-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
       border-radius: 10px;
-      margin-bottom: 14px;
-      min-height: 50px;
-    }
-
-    .deploy-placeholder {
+      padding: 11px 22px;
       font-size: 13px;
-      color: #636366;
-    }
-
-    .deploy-selected-name {
-      font-size: 13px;
-      font-weight: 500;
-      color: #ffffff;
-    }
-
-    .deploy-selected-id {
-      font-size: 11px;
-      color: #636366;
-      font-family: 'SF Mono', 'Fira Mono', monospace;
-    }
-
-    /* CONSOLE */
-    .console-body {
-      padding: 14px 16px;
-      font-family: 'SF Mono', 'Fira Mono', 'Menlo', 'Monaco', monospace;
-      font-size: 11.5px;
-      line-height: 1.65;
-      max-height: 240px;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: #3a3a3c transparent;
-      min-height: 120px;
-    }
-
-    .console-body::-webkit-scrollbar { width: 4px; }
-    .console-body::-webkit-scrollbar-track { background: transparent; }
-    .console-body::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
-
-    .log-line {
-      white-space: pre-wrap;
-      word-break: break-all;
-      color: #8e8e93;
-    }
-
-    .log-line.log-error { color: #ff453a; }
-    .log-line.log-warning { color: #ffd60a; }
-    .log-line.log-info { color: #8e8e93; }
-    .log-line.log-success { color: #30d158; }
-
-    .auto-scroll-notice {
-      display: none;
-      text-align: center;
-      padding: 6px;
-      font-size: 11px;
-      color: #636366;
-      background: #2c2c2e;
+      font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
-      border-top: 1px solid #2c2c2e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background .2s, opacity .2s;
     }
+    .deploy-btn:hover:not(:disabled) { background: var(--accent-hover); }
+    .deploy-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .deploy-btn.success { background: var(--success); }
+    .deploy-btn.error { background: var(--danger); }
 
-    .auto-scroll-notice:hover { color: #8e8e93; }
-    .auto-scroll-notice.show { display: block; }
-
-    /* DEPLOY RESULT */
     .deploy-result {
       display: none;
-      padding: 10px 12px;
+      padding: 11px 14px;
       border-radius: 10px;
       font-size: 12.5px;
       line-height: 1.5;
-      margin-top: 10px;
     }
-
     .deploy-result.show { display: block; }
+    .deploy-result.success { background: rgba(46,194,126,.12); color: var(--success); }
+    .deploy-result.error { background: rgba(224,27,36,.12); color: #ff6b6b; }
+    .deploy-result a { color: var(--accent); text-decoration: underline; }
 
-    .deploy-result.result-success {
-      background: rgba(48, 209, 88, .1);
-      color: #30d158;
-    }
-
-    .deploy-result.result-error {
-      background: rgba(255, 69, 58, .1);
-      color: #ff453a;
-    }
-
-    .deploy-result a {
-      color: #0a84ff;
-      text-decoration: underline;
-    }
-
-    /* DEPLOY BUTTON */
-    .deploy-btn {
-      width: 100%;
-      background: #1c1c1e;
-      color: #ffffff;
-      border: none;
-      border-radius: 100px;
-      padding: 18px 24px;
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: opacity .2s, background .2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .deploy-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-    .deploy-btn:not(:disabled):hover { background: #2c2c2e; }
-    .deploy-btn:not(:disabled):active { background: #3a3a3c; }
-
-    .deploy-btn.loading { opacity: 0.75; cursor: wait; }
-    .deploy-btn.success { background: rgba(48,209,88,.15); color: #30d158; }
-    .deploy-btn.error   { background: rgba(255,69,58,.15);  color: #ff453a; }
-
-    /* SPINNER */
     .spinner {
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255,255,255,.25);
-      border-top-color: #ffffff;
+      width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
       border-radius: 50%;
       animation: spin .6s linear infinite;
     }
-
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* RESPONSIVE: on wider screens, expand to full width */
-    @media (min-width: 600px) {
-      .app { padding-top: 64px; }
+    @media (max-width: 480px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stat:nth-child(3) { grid-column: span 2; }
     }
   </style>
 </head>
@@ -341,119 +423,210 @@
 
 <div class="app">
 
-  <!-- HEADER -->
-  <header class="header">
-    <div class="logo-wrap">
-      <!-- Sycord M-wing logo -->
-      <svg width="52" height="40" viewBox="0 0 52 40" fill="none" xmlns="http://www.w3.org/2000/svg"
-           role="img" aria-label="Sycord logo">
-        <path d="M2 36 C2 36 10 4 14 4 C18 4 20 20 26 20 C32 20 34 4 38 4 C42 4 50 36 50 36"
-              stroke="#636366" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      </svg>
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#fff" stroke-width="2"/>
+          <circle cx="12" cy="5" r="2" fill="#fff"/>
+          <circle cx="5" cy="16" r="2" fill="#fff"/>
+          <circle cx="19" cy="16" r="2" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">Companion Server</div>
+        <div class="brand-sub">internal deploy console</div>
+      </div>
     </div>
-    <h1>internal server</h1>
+    <div class="status-dot" id="statusDot">connecting</div>
   </header>
 
-  <!-- STATUS PILLS -->
-  <div class="pills">
-    <div class="pill" id="pillStatus">connecting</div>
-    <div class="pill" id="pillRepos">— repos</div>
-    <div class="pill" id="pillSites">— sites</div>
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Repositories</div>
+      <div class="stat-value" id="statRepos">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Active Sites</div>
+      <div class="stat-value" id="statSites">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Uptime</div>
+      <div class="stat-value" id="statUptime">—</div>
+    </div>
   </div>
 
-  <!-- PROJECTS SECTION -->
-  <div class="section-label">projects</div>
-
-  <!-- CARD 1: Repositories -->
+  <!-- AUTO UPDATER -->
   <div class="card">
-    <div class="card-inner">
-      <input type="text" class="search-input" id="repoSearch" placeholder="search repositories">
+    <div class="updater">
+      <div class="updater-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e95420" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/>
+          <polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+      </div>
+      <div class="updater-info">
+        <div class="updater-line1" id="updaterLine1">Auto‑updater initializing…</div>
+        <div class="updater-line2" id="updaterLine2">companion-server · checking every 60s</div>
+      </div>
+      <span class="updater-badge checking" id="updaterBadge">checking</span>
+      <button class="btn" id="updateBtn" disabled>Update</button>
+    </div>
+  </div>
+
+  <!-- REPOSITORIES -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">Repositories</div>
+    </div>
+    <div class="card-body">
+      <input type="text" class="search" id="repoSearch" placeholder="Search repositories…">
       <div class="repo-list" id="repoList">
-        <div class="empty-state">loading…</div>
+        <div class="empty">loading…</div>
       </div>
     </div>
   </div>
 
-  <!-- CARD 2: Console / Logs -->
+  <!-- CONSOLE -->
   <div class="card">
-    <div class="console-body" id="consoleBody">
-      <div class="log-line log-info">waiting for logs…</div>
+    <div class="card-head">
+      <div class="card-title">Console</div>
+      <span class="updater-badge" style="background:var(--surface-2);color:var(--dim);" id="consoleTag">idle</span>
     </div>
-    <div class="auto-scroll-notice" id="autoScrollNotice">↓ new logs — tap to scroll</div>
+    <div class="console" id="consoleBody">
+      <div class="log info">$ waiting for logs…</div>
+    </div>
+    <div class="scroll-notice" id="autoScrollNotice">↓ new logs — tap to scroll</div>
   </div>
 
-  <!-- SELECTED REPO INFO + RESULT -->
-  <div class="deploy-info" id="deployInfo">
-    <span class="deploy-placeholder">select a repository to deploy</span>
+  <!-- DEPLOY BAR -->
+  <div class="deploy-bar">
+    <div class="deploy-selected" id="deployInfo">
+      <span class="deploy-placeholder">Select a repository to deploy</span>
+    </div>
+    <button class="deploy-btn" id="deployBtn" disabled>Deploy</button>
   </div>
+
   <div class="deploy-result" id="deployResult"></div>
-
-  <!-- DEPLOY BUTTON -->
-  <button class="deploy-btn" id="deployBtn" disabled>deploy</button>
 
 </div>
 
 <script>
   const $ = (s) => document.querySelector(s);
-
   let selectedRepo = null;
   let autoScroll = true;
   let deploying = false;
   let allRepos = [];
-
-  /* ── Utilities ─────────────────────────────────────── */
+  const bootTime = Date.now();
 
   function escapeHtml(str) {
     if (str == null) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
-  function relativeTime(dateStr) {
-    if (!dateStr) return '';
-    const diff = Math.max(0, Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000));
-    if (isNaN(diff)) return '';
-    if (diff < 60) return diff + 's ago';
-    if (diff < 3600) return Math.floor(diff / 60) + 'min ago';
-    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-    return Math.floor(diff / 86400) + 'd ago';
+  function fmtUptime(ms) {
+    const s = Math.floor(ms / 1000);
+    if (s < 60) return s + 's';
+    if (s < 3600) return Math.floor(s/60) + 'm';
+    if (s < 86400) return Math.floor(s/3600) + 'h';
+    return Math.floor(s/86400) + 'd';
   }
 
-  /* ── Health ─────────────────────────────────────────── */
-
+  /* HEALTH */
   async function fetchHealth() {
     try {
       const res = await fetch('/api/health');
       const data = await res.json();
-      const pill = $('#pillStatus');
-      pill.textContent = 'online';
-      pill.className = 'pill online';
-      if (data.deployed_sites !== undefined) {
-        $('#pillSites').textContent = data.deployed_sites + ' sites';
-      }
+      const dot = $('#statusDot');
+      dot.textContent = 'online';
+      dot.className = 'status-dot online';
+      if (data.deployed_sites !== undefined) $('#statSites').textContent = data.deployed_sites;
     } catch {
-      const pill = $('#pillStatus');
-      pill.textContent = 'offline';
-      pill.className = 'pill offline';
+      const dot = $('#statusDot');
+      dot.textContent = 'offline';
+      dot.className = 'status-dot offline';
     }
   }
 
-  /* ── Repos ──────────────────────────────────────────── */
+  /* UPDATER */
+  async function fetchUpdater() {
+    try {
+      const res = await fetch('/api/updater/status');
+      const d = await res.json();
+      const badge = $('#updaterBadge');
+      const btn = $('#updateBtn');
+      const line1 = $('#updaterLine1');
+      const line2 = $('#updaterLine2');
 
+      const cur = d.current ? d.current.slice(0, 7) : '—';
+      const rem = d.remote ? d.remote.slice(0, 7) : '—';
+
+      if (d.updating) {
+        badge.className = 'updater-badge checking';
+        badge.textContent = 'updating';
+        line1.textContent = 'Pulling latest version…';
+        btn.disabled = true;
+      } else if (d.lastError) {
+        badge.className = 'updater-badge error';
+        badge.textContent = 'error';
+        line1.textContent = 'Update check failed';
+        line2.textContent = d.lastError.slice(0, 80);
+        btn.disabled = false;
+        btn.textContent = 'Retry';
+        return;
+      } else if (d.updateAvailable) {
+        badge.className = 'updater-badge available';
+        badge.textContent = 'update ready';
+        line1.textContent = 'New version available';
+        btn.disabled = false;
+        btn.textContent = 'Update now';
+      } else {
+        badge.className = 'updater-badge uptodate';
+        badge.textContent = 'up to date';
+        line1.textContent = 'Running latest version';
+        btn.disabled = false;
+        btn.textContent = 'Check';
+      }
+      line2.textContent = `companion-server · local ${cur} → remote ${rem}`;
+    } catch {
+      $('#updaterBadge').className = 'updater-badge error';
+      $('#updaterBadge').textContent = 'offline';
+    }
+  }
+
+  $('#updateBtn').addEventListener('click', async () => {
+    const btn = $('#updateBtn');
+    const badge = $('#updaterBadge');
+    btn.disabled = true;
+    btn.textContent = 'Working…';
+    badge.className = 'updater-badge checking';
+    badge.textContent = 'working';
+    try {
+      // If update ready, run update, else just check
+      const status = await (await fetch('/api/updater/status')).json();
+      if (status.updateAvailable) {
+        await fetch('/api/updater/update', { method: 'POST' });
+      } else {
+        await fetch('/api/updater/check', { method: 'POST' });
+      }
+    } catch {}
+    setTimeout(fetchUpdater, 1500);
+  });
+
+  /* REPOS */
   async function fetchRepos() {
     try {
       const res = await fetch('/api/repos');
       const data = await res.json();
       if (!data.success) return;
       allRepos = data.repositories || [];
-      $('#pillRepos').textContent = allRepos.length + ' repos';
+      $('#statRepos').textContent = allRepos.length;
       renderRepos();
     } catch {
-      $('#repoList').innerHTML = '<div class="empty-state">failed to load</div>';
+      $('#repoList').innerHTML = '<div class="empty">failed to load</div>';
     }
   }
 
@@ -465,27 +638,24 @@
     );
     const list = $('#repoList');
     if (!filtered.length) {
-      list.innerHTML = '<div class="empty-state">' +
-        (filter ? 'no matching repos' : 'no repositories found') +
-        '</div>';
+      list.innerHTML = '<div class="empty">' + (filter ? 'no matching repos' : 'no repositories found') + '</div>';
       return;
     }
     list.innerHTML = filtered.map(r => {
-      const isSelected = selectedRepo && selectedRepo.repo_id === r.repo_id;
-      return `<div class="repo-item${isSelected ? ' selected' : ''}" data-id="${escapeHtml(String(r.repo_id))}">
-        <div class="repo-icon">📁</div>
+      const sel = selectedRepo && selectedRepo.repo_id === r.repo_id;
+      return `<div class="repo-item${sel ? ' selected' : ''}" data-id="${escapeHtml(String(r.repo_id))}">
+        <div class="repo-icon">⬢</div>
         <div class="repo-info">
           <div class="repo-name">${escapeHtml(r.full_name || r.name)}</div>
-          <div class="repo-id">${escapeHtml(String(r.repo_id))}</div>
+          <div class="repo-id">#${escapeHtml(String(r.repo_id))}</div>
         </div>
         <div class="repo-check">
           <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-            <path d="M1 4l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M1 4l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
       </div>`;
     }).join('');
-
     list.querySelectorAll('.repo-item').forEach(el => {
       el.addEventListener('click', () => {
         const repo = allRepos.find(r => String(r.repo_id) === el.dataset.id);
@@ -497,182 +667,136 @@
   function selectRepo(repo) {
     selectedRepo = repo;
     $('#deployInfo').innerHTML =
-      `<div class="repo-icon" style="flex-shrink:0">📁</div>
-       <div>
-         <div class="deploy-selected-name">${escapeHtml(repo.full_name || repo.name)}</div>
-         <div class="deploy-selected-id">${escapeHtml(String(repo.repo_id))}</div>
+      `<div class="repo-icon">⬢</div>
+       <div style="min-width:0">
+         <div class="deploy-name">${escapeHtml(repo.full_name || repo.name)}</div>
+         <div class="repo-id">#${escapeHtml(String(repo.repo_id))}</div>
        </div>`;
     $('#deployBtn').disabled = false;
-    const result = $('#deployResult');
-    result.className = 'deploy-result';
-    result.style.display = 'none';
+    $('#deployResult').className = 'deploy-result';
     renderRepos();
     startLogsStream();
   }
 
-  /* ── Sites ──────────────────────────────────────────── */
-
+  /* SITES */
   async function fetchSites() {
     try {
       const res = await fetch('/api/sites');
       const data = await res.json();
       if (!data.success) return;
-      const total = data.total || (data.sites || []).length;
-      $('#pillSites').textContent = total + ' sites';
+      $('#statSites').textContent = data.total || (data.sites || []).length;
     } catch {}
   }
 
-  /* ── Logs ───────────────────────────────────────────── */
-
+  /* LOGS */
   let logSource = null;
-
   function sanitizeProjectName(name) {
     if (!name) return 'unnamed-project';
     return name.toLowerCase().replace(/[^a-z0-9-]/g, '-').substring(0, 63);
   }
-
   function startLogsStream() {
-    if (logSource) {
-      logSource.close();
-      logSource = null;
-    }
-
+    if (logSource) { logSource.close(); logSource = null; }
     const body = $('#consoleBody');
-    body.innerHTML = ''; // Clear logs
-
+    body.innerHTML = '';
     if (!selectedRepo) {
-      body.innerHTML = '<div class="log-line log-info">waiting for logs…</div>';
+      body.innerHTML = '<div class="log info">$ waiting for logs…</div>';
+      $('#consoleTag').textContent = 'idle';
       return;
     }
-
-    const appName = sanitizeProjectName(selectedRepo.name);
-    logSource = new EventSource('/api/logs/' + encodeURIComponent(appName));
-
-    logSource.onmessage = (event) => {
+    $('#consoleTag').textContent = sanitizeProjectName(selectedRepo.name);
+    logSource = new EventSource('/api/logs/' + encodeURIComponent(sanitizeProjectName(selectedRepo.name)));
+    logSource.onmessage = (e) => {
       try {
-        const data = JSON.parse(event.data);
-        if (data.log) {
-          appendLog(data.log);
-        }
-      } catch (e) {}
-    };
-
-    logSource.onerror = () => {
-      // Reconnects automatically, but we can visually indicate
+        const d = JSON.parse(e.data);
+        if (d.log) appendLog(d.log);
+      } catch {}
     };
   }
-
   function appendLog(line) {
     const body = $('#consoleBody');
-    const atBottom = autoScroll;
-    
-    let cls = 'log-line log-info';
+    let cls = 'log info';
     const u = line.toUpperCase();
-    if (u.includes('[ERROR]') || u.includes('ERROR:'))    cls = 'log-line log-error';
-    else if (u.includes('[WARN') || u.includes('WARNING')) cls = 'log-line log-warning';
-    else if (u.includes('SUCCESS') || u.includes('✓'))    cls = 'log-line log-success';
-    
+    if (u.includes('ERROR')) cls = 'log error';
+    else if (u.includes('WARN')) cls = 'log warning';
+    else if (u.includes('SUCCESS') || u.includes('✓')) cls = 'log success';
     const div = document.createElement('div');
     div.className = cls;
     div.textContent = line;
     body.appendChild(div);
-
-    // Keep only last 300 lines to prevent DOM bloat
-    while (body.children.length > 300) {
-      body.removeChild(body.firstChild);
-    }
-
-    if (atBottom) {
-      body.scrollTop = body.scrollHeight;
-    } else {
-      $('#autoScrollNotice').classList.add('show');
-    }
+    while (body.children.length > 300) body.removeChild(body.firstChild);
+    if (autoScroll) body.scrollTop = body.scrollHeight;
+    else $('#autoScrollNotice').classList.add('show');
   }
 
-  /* ── Deploy ─────────────────────────────────────────── */
-
+  /* DEPLOY */
   async function doDeploy() {
     if (!selectedRepo || deploying) return;
     deploying = true;
     const btn = $('#deployBtn');
     const result = $('#deployResult');
-
-    btn.className = 'deploy-btn loading';
-    btn.innerHTML = '<div class="spinner"></div> deploying…';
+    btn.className = 'deploy-btn';
+    btn.innerHTML = '<div class="spinner"></div> Deploying…';
     btn.disabled = true;
     result.className = 'deploy-result';
-    result.style.display = 'none';
 
     try {
       const res = await fetch('/api/deploy/' + encodeURIComponent(selectedRepo.repo_id), { method: 'POST' });
       const data = await res.json();
-
       if (data.success) {
         btn.className = 'deploy-btn success';
-        btn.textContent = '✓ deployed';
-        result.className = 'deploy-result result-success show';
-        result.style.display = 'block';
+        btn.textContent = '✓ Deployed';
+        result.className = 'deploy-result success show';
         let msg = escapeHtml(data.message || 'deployment successful');
         const url = data.url || data.local_url;
-        if (url) {
-          msg += '<br><a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">'
-               + escapeHtml(url) + '</a>';
-        }
+        if (url) msg += '<br><a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(url) + '</a>';
         result.innerHTML = msg;
-        fetchSites();
-        fetchHealth();
-        startLogsStream();
+        fetchSites(); fetchHealth(); startLogsStream();
       } else {
         btn.className = 'deploy-btn error';
-        btn.textContent = '✗ failed';
-        result.className = 'deploy-result result-error show';
-        result.style.display = 'block';
+        btn.textContent = '✗ Failed';
+        result.className = 'deploy-result error show';
         result.textContent = data.message || data.error || 'deployment failed';
       }
     } catch (err) {
       btn.className = 'deploy-btn error';
-      btn.textContent = '✗ error';
-      result.className = 'deploy-result result-error show';
-      result.style.display = 'block';
+      btn.textContent = '✗ Error';
+      result.className = 'deploy-result error show';
       result.textContent = 'network error: ' + err.message;
     }
-
     setTimeout(() => {
       btn.className = 'deploy-btn';
-      btn.textContent = 'deploy';
+      btn.textContent = 'Deploy';
       btn.disabled = false;
       deploying = false;
     }, 4000);
   }
 
-  /* ── Event listeners ────────────────────────────────── */
-
+  /* LISTENERS */
   $('#consoleBody').addEventListener('scroll', () => {
     const el = $('#consoleBody');
-    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 30;
-    autoScroll = atBottom;
-    if (atBottom) $('#autoScrollNotice').classList.remove('show');
+    autoScroll = el.scrollHeight - el.scrollTop - el.clientHeight < 30;
+    if (autoScroll) $('#autoScrollNotice').classList.remove('show');
   });
-
   $('#autoScrollNotice').addEventListener('click', () => {
     const el = $('#consoleBody');
     el.scrollTop = el.scrollHeight;
     autoScroll = true;
     $('#autoScrollNotice').classList.remove('show');
   });
-
   $('#repoSearch').addEventListener('input', renderRepos);
   $('#deployBtn').addEventListener('click', doDeploy);
 
-  /* ── Init ───────────────────────────────────────────── */
-
+  /* INIT */
   fetchHealth();
   fetchRepos();
   fetchSites();
+  fetchUpdater();
   startLogsStream();
 
   setInterval(fetchSites, 10000);
   setInterval(fetchHealth, 15000);
+  setInterval(fetchUpdater, 15000);
+  setInterval(() => { $('#statUptime').textContent = fmtUptime(Date.now() - bootTime); }, 1000);
 </script>
 
 </body>
