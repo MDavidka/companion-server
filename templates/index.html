@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>internal server</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 48px 24px 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 40px;
+    }
+
+    .logo-wrap {
+      flex-shrink: 0;
+      width: 52px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header h1 {
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      color: #ffffff;
+    }
+
+    /* STATUS PILLS ROW */
+    .pills {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 34px;
+    }
+
+    .pill {
+      flex: 1;
+      background: #1c1c1e;
+      border-radius: 100px;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #8e8e93;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color .3s;
+      min-width: 0;
+    }
+
+    .pill.online { color: #30d158; }
+    .pill.offline { color: #ff453a; }
+
+    /* SECTION LABEL */
+    .section-label {
+      font-size: 15px;
+      font-weight: 500;
+      color: #8e8e93;
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+
+    /* CARDS */
+    .card {
+      background: #1c1c1e;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .card-inner {
+      padding: 18px 18px 16px;
+    }
+
+    /* REPO LIST */
+    .search-input {
+      width: 100%;
+      background: #2c2c2e;
+      border: none;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 14px;
+      color: #ffffff;
+      outline: none;
+      margin-bottom: 12px;
+    }
+
+    .search-input::placeholder { color: #636366; }
+
+    .repo-list {
+      max-height: 220px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #3a3a3c transparent;
+    }
+
+    .repo-list::-webkit-scrollbar { width: 4px; }
+    .repo-list::-webkit-scrollbar-track { background: transparent; }
+    .repo-list::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
+
+    .repo-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    .repo-item:hover { background: #2c2c2e; }
+    .repo-item.selected { background: #2c2c2e; }
+
+    .repo-icon {
+      width: 30px;
+      height: 30px;
+      background: #3a3a3c;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .repo-info { flex: 1; min-width: 0; }
+
+    .repo-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .repo-id {
+      font-size: 11px;
+      color: #636366;
+      margin-top: 1px;
+      font-family: 'SF Mono', 'Fira Mono', monospace;
+    }
+
+    .repo-check {
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid #3a3a3c;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background .15s, border-color .15s;
+    }
+
+    .repo-item.selected .repo-check {
+      background: #0a84ff;
+      border-color: #0a84ff;
+    }
+
+    .repo-check svg { display: none; }
+    .repo-item.selected .repo-check svg { display: block; }
+
+    .empty-state {
+      padding: 20px 10px;
+      text-align: center;
+      font-size: 13px;
+      color: #636366;
+    }
+
+    /* SELECTED DEPLOY INFO */
+    .deploy-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: #2c2c2e;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      min-height: 50px;
+    }
+
+    .deploy-placeholder {
+      font-size: 13px;
+      color: #636366;
+    }
+
+    .deploy-selected-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #ffffff;
+    }
+
+    .deploy-selected-id {
+      font-size: 11px;
+      color: #636366;
+      font-family: 'SF Mono', 'Fira Mono', monospace;
+    }
+
+    /* CONSOLE */
+    .console-body {
+      padding: 14px 16px;
+      font-family: 'SF Mono', 'Fira Mono', 'Menlo', 'Monaco', monospace;
+      font-size: 11.5px;
+      line-height: 1.65;
+      max-height: 240px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #3a3a3c transparent;
+      min-height: 120px;
+    }
+
+    .console-body::-webkit-scrollbar { width: 4px; }
+    .console-body::-webkit-scrollbar-track { background: transparent; }
+    .console-body::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
+
+    .log-line {
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: #8e8e93;
+    }
+
+    .log-line.log-error { color: #ff453a; }
+    .log-line.log-warning { color: #ffd60a; }
+    .log-line.log-info { color: #8e8e93; }
+    .log-line.log-success { color: #30d158; }
+
+    .auto-scroll-notice {
+      display: none;
+      text-align: center;
+      padding: 6px;
+      font-size: 11px;
+      color: #636366;
+      background: #2c2c2e;
+      cursor: pointer;
+      border-top: 1px solid #2c2c2e;
+    }
+
+    .auto-scroll-notice:hover { color: #8e8e93; }
+    .auto-scroll-notice.show { display: block; }
+
+    /* DEPLOY RESULT */
+    .deploy-result {
+      display: none;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+
+    .deploy-result.show { display: block; }
+
+    .deploy-result.result-success {
+      background: rgba(48, 209, 88, .1);
+      color: #30d158;
+    }
+
+    .deploy-result.result-error {
+      background: rgba(255, 69, 58, .1);
+      color: #ff453a;
+    }
+
+    .deploy-result a {
+      color: #0a84ff;
+      text-decoration: underline;
+    }
+
+    /* DEPLOY BUTTON */
+    .deploy-btn {
+      width: 100%;
+      background: #1c1c1e;
+      color: #ffffff;
+      border: none;
+      border-radius: 100px;
+      padding: 18px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: opacity .2s, background .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .deploy-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .deploy-btn:not(:disabled):hover { background: #2c2c2e; }
+    .deploy-btn:not(:disabled):active { background: #3a3a3c; }
+
+    .deploy-btn.loading { opacity: 0.75; cursor: wait; }
+    .deploy-btn.success { background: rgba(48,209,88,.15); color: #30d158; }
+    .deploy-btn.error   { background: rgba(255,69,58,.15);  color: #ff453a; }
+
+    /* SPINNER */
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,.25);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* RESPONSIVE: on wider screens, expand to full width */
+    @media (min-width: 600px) {
+      .app { padding-top: 64px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo-wrap">
+      <!-- Sycord M-wing logo -->
+      <svg width="52" height="40" viewBox="0 0 52 40" fill="none" xmlns="http://www.w3.org/2000/svg"
+           role="img" aria-label="Sycord logo">
+        <path d="M2 36 C2 36 10 4 14 4 C18 4 20 20 26 20 C32 20 34 4 38 4 C42 4 50 36 50 36"
+              stroke="#636366" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+    </div>
+    <h1>internal server</h1>
+  </header>
+
+  <!-- STATUS PILLS -->
+  <div class="pills">
+    <div class="pill" id="pillStatus">connecting</div>
+    <div class="pill" id="pillRepos">— repos</div>
+    <div class="pill" id="pillSites">— sites</div>
+  </div>
+
+  <!-- PROJECTS SECTION -->
+  <div class="section-label">projects</div>
+
+  <!-- CARD 1: Repositories -->
+  <div class="card">
+    <div class="card-inner">
+      <input type="text" class="search-input" id="repoSearch" placeholder="search repositories">
+      <div class="repo-list" id="repoList">
+        <div class="empty-state">loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 2: Console / Logs -->
+  <div class="card">
+    <div class="console-body" id="consoleBody">
+      <div class="log-line log-info">waiting for logs…</div>
+    </div>
+    <div class="auto-scroll-notice" id="autoScrollNotice">↓ new logs — tap to scroll</div>
+  </div>
+
+  <!-- SELECTED REPO INFO + RESULT -->
+  <div class="deploy-info" id="deployInfo">
+    <span class="deploy-placeholder">select a repository to deploy</span>
+  </div>
+  <div class="deploy-result" id="deployResult"></div>
+
+  <!-- DEPLOY BUTTON -->
+  <button class="deploy-btn" id="deployBtn" disabled>deploy</button>
+
+</div>
+
+<script>
+  const $ = (s) => document.querySelector(s);
+
+  let selectedRepo = null;
+  let autoScroll = true;
+  let deploying = false;
+  let allRepos = [];
+
+  /* ── Utilities ─────────────────────────────────────── */
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function relativeTime(dateStr) {
+    if (!dateStr) return '';
+    const diff = Math.max(0, Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000));
+    if (isNaN(diff)) return '';
+    if (diff < 60) return diff + 's ago';
+    if (diff < 3600) return Math.floor(diff / 60) + 'min ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    return Math.floor(diff / 86400) + 'd ago';
+  }
+
+  /* ── Health ─────────────────────────────────────────── */
+
+  async function fetchHealth() {
+    try {
+      const res = await fetch('/api/health');
+      const data = await res.json();
+      const pill = $('#pillStatus');
+      pill.textContent = 'online';
+      pill.className = 'pill online';
+      if (data.deployed_sites !== undefined) {
+        $('#pillSites').textContent = data.deployed_sites + ' sites';
+      }
+    } catch {
+      const pill = $('#pillStatus');
+      pill.textContent = 'offline';
+      pill.className = 'pill offline';
+    }
+  }
+
+  /* ── Repos ──────────────────────────────────────────── */
+
+  async function fetchRepos() {
+    try {
+      const res = await fetch('/api/repos');
+      const data = await res.json();
+      if (!data.success) return;
+      allRepos = data.repositories || [];
+      $('#pillRepos').textContent = allRepos.length + ' repos';
+      renderRepos();
+    } catch {
+      $('#repoList').innerHTML = '<div class="empty-state">failed to load</div>';
+    }
+  }
+
+  function renderRepos() {
+    const filter = ($('#repoSearch').value || '').toLowerCase();
+    const filtered = allRepos.filter(r =>
+      (r.full_name || r.name || '').toLowerCase().includes(filter) ||
+      String(r.repo_id).includes(filter)
+    );
+    const list = $('#repoList');
+    if (!filtered.length) {
+      list.innerHTML = '<div class="empty-state">' +
+        (filter ? 'no matching repos' : 'no repositories found') +
+        '</div>';
+      return;
+    }
+    list.innerHTML = filtered.map(r => {
+      const isSelected = selectedRepo && selectedRepo.repo_id === r.repo_id;
+      return `<div class="repo-item${isSelected ? ' selected' : ''}" data-id="${escapeHtml(String(r.repo_id))}">
+        <div class="repo-icon">📁</div>
+        <div class="repo-info">
+          <div class="repo-name">${escapeHtml(r.full_name || r.name)}</div>
+          <div class="repo-id">${escapeHtml(String(r.repo_id))}</div>
+        </div>
+        <div class="repo-check">
+          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+            <path d="M1 4l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>`;
+    }).join('');
+
+    list.querySelectorAll('.repo-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const repo = allRepos.find(r => String(r.repo_id) === el.dataset.id);
+        if (repo) selectRepo(repo);
+      });
+    });
+  }
+
+  function selectRepo(repo) {
+    selectedRepo = repo;
+    $('#deployInfo').innerHTML =
+      `<div class="repo-icon" style="flex-shrink:0">📁</div>
+       <div>
+         <div class="deploy-selected-name">${escapeHtml(repo.full_name || repo.name)}</div>
+         <div class="deploy-selected-id">${escapeHtml(String(repo.repo_id))}</div>
+       </div>`;
+    $('#deployBtn').disabled = false;
+    const result = $('#deployResult');
+    result.className = 'deploy-result';
+    result.style.display = 'none';
+    renderRepos();
+    startLogsStream();
+  }
+
+  /* ── Sites ──────────────────────────────────────────── */
+
+  async function fetchSites() {
+    try {
+      const res = await fetch('/api/sites');
+      const data = await res.json();
+      if (!data.success) return;
+      const total = data.total || (data.sites || []).length;
+      $('#pillSites').textContent = total + ' sites';
+    } catch {}
+  }
+
+  /* ── Logs ───────────────────────────────────────────── */
+
+  let logSource = null;
+
+  function sanitizeProjectName(name) {
+    if (!name) return 'unnamed-project';
+    return name.toLowerCase().replace(/[^a-z0-9-]/g, '-').substring(0, 63);
+  }
+
+  function startLogsStream() {
+    if (logSource) {
+      logSource.close();
+      logSource = null;
+    }
+
+    const body = $('#consoleBody');
+    body.innerHTML = ''; // Clear logs
+
+    if (!selectedRepo) {
+      body.innerHTML = '<div class="log-line log-info">waiting for logs…</div>';
+      return;
+    }
+
+    const appName = sanitizeProjectName(selectedRepo.name);
+    logSource = new EventSource('/api/logs/' + encodeURIComponent(appName));
+
+    logSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.log) {
+          appendLog(data.log);
+        }
+      } catch (e) {}
+    };
+
+    logSource.onerror = () => {
+      // Reconnects automatically, but we can visually indicate
+    };
+  }
+
+  function appendLog(line) {
+    const body = $('#consoleBody');
+    const atBottom = autoScroll;
+    
+    let cls = 'log-line log-info';
+    const u = line.toUpperCase();
+    if (u.includes('[ERROR]') || u.includes('ERROR:'))    cls = 'log-line log-error';
+    else if (u.includes('[WARN') || u.includes('WARNING')) cls = 'log-line log-warning';
+    else if (u.includes('SUCCESS') || u.includes('✓'))    cls = 'log-line log-success';
+    
+    const div = document.createElement('div');
+    div.className = cls;
+    div.textContent = line;
+    body.appendChild(div);
+
+    // Keep only last 300 lines to prevent DOM bloat
+    while (body.children.length > 300) {
+      body.removeChild(body.firstChild);
+    }
+
+    if (atBottom) {
+      body.scrollTop = body.scrollHeight;
+    } else {
+      $('#autoScrollNotice').classList.add('show');
+    }
+  }
+
+  /* ── Deploy ─────────────────────────────────────────── */
+
+  async function doDeploy() {
+    if (!selectedRepo || deploying) return;
+    deploying = true;
+    const btn = $('#deployBtn');
+    const result = $('#deployResult');
+
+    btn.className = 'deploy-btn loading';
+    btn.innerHTML = '<div class="spinner"></div> deploying…';
+    btn.disabled = true;
+    result.className = 'deploy-result';
+    result.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/deploy/' + encodeURIComponent(selectedRepo.repo_id), { method: 'POST' });
+      const data = await res.json();
+
+      if (data.success) {
+        btn.className = 'deploy-btn success';
+        btn.textContent = '✓ deployed';
+        result.className = 'deploy-result result-success show';
+        result.style.display = 'block';
+        let msg = escapeHtml(data.message || 'deployment successful');
+        const url = data.url || data.local_url;
+        if (url) {
+          msg += '<br><a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">'
+               + escapeHtml(url) + '</a>';
+        }
+        result.innerHTML = msg;
+        fetchSites();
+        fetchHealth();
+        startLogsStream();
+      } else {
+        btn.className = 'deploy-btn error';
+        btn.textContent = '✗ failed';
+        result.className = 'deploy-result result-error show';
+        result.style.display = 'block';
+        result.textContent = data.message || data.error || 'deployment failed';
+      }
+    } catch (err) {
+      btn.className = 'deploy-btn error';
+      btn.textContent = '✗ error';
+      result.className = 'deploy-result result-error show';
+      result.style.display = 'block';
+      result.textContent = 'network error: ' + err.message;
+    }
+
+    setTimeout(() => {
+      btn.className = 'deploy-btn';
+      btn.textContent = 'deploy';
+      btn.disabled = false;
+      deploying = false;
+    }, 4000);
+  }
+
+  /* ── Event listeners ────────────────────────────────── */
+
+  $('#consoleBody').addEventListener('scroll', () => {
+    const el = $('#consoleBody');
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 30;
+    autoScroll = atBottom;
+    if (atBottom) $('#autoScrollNotice').classList.remove('show');
+  });
+
+  $('#autoScrollNotice').addEventListener('click', () => {
+    const el = $('#consoleBody');
+    el.scrollTop = el.scrollHeight;
+    autoScroll = true;
+    $('#autoScrollNotice').classList.remove('show');
+  });
+
+  $('#repoSearch').addEventListener('input', renderRepos);
+  $('#deployBtn').addEventListener('click', doDeploy);
+
+  /* ── Init ───────────────────────────────────────────── */
+
+  fetchHealth();
+  fetchRepos();
+  fetchSites();
+  startLogsStream();
+
+  setInterval(fetchSites, 10000);
+  setInterval(fetchHealth, 15000);
+</script>
+
+</body>
+</html>
