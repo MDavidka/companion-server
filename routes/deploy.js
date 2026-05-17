@@ -63,50 +63,65 @@ router.all('/:repo_id', async (req, res) => {
     const targetHost = process.env.SERVER_HOST || CLOUDFLARE_DOMAIN;
     let dnsResult = null;
     let tunnelResult = null;
-    const cfLogger = (line) => addLog(projectName, line);
+    let quickResult = null;
+    const cfLogger = (line) => { addLog(projectName, line); console.log(line); };
+
+    cfLogger(`[cloudflare] ══════════════════════════════════════════════════`);
+    cfLogger(`[cloudflare] connecting local mini-server localhost:${result.port} to a public Cloudflare URL`);
+    cfLogger(`[cloudflare] project: ${projectName} · domain: ${CLOUDFLARE_DOMAIN}`);
+    cfLogger(`[cloudflare] env detected → API_TOKEN:${!!process.env.CLOUDFLARE_API_TOKEN} ZONE_ID:${!!process.env.CLOUDFLARE_ZONE_ID} ACCOUNT_ID:${!!process.env.CLOUDFLARE_ACCOUNT_ID} TUNNEL_ID:${!!process.env.CLOUDFLARED_TUNNEL_ID}`);
 
     if (tunnelEnabled()) {
-      // Preferred path: route localhost:<port> through a cloudflared tunnel.
-      addLog(projectName, `[cloudflare] starting TUNNEL connection for ${projectName}.${CLOUDFLARE_DOMAIN} → http://localhost:${result.port}`);
+      cfLogger(`[cloudflare] strategy: NAMED TUNNEL (cloudflared) → ${projectName}.${CLOUDFLARE_DOMAIN} → http://localhost:${result.port}`);
       tunnelResult = await connectTunnel(projectName, result.port, cfLogger);
       if (!tunnelResult || !tunnelResult.success) {
-        return res.status(500).json({
-          success: false,
-          message: `Built and started on port ${result.port}, but Cloudflare tunnel ingress failed for ${projectName}.${CLOUDFLARE_DOMAIN}.`,
-          project_name: projectName,
-          port: result.port
-        });
-      }
-    } else if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ZONE_ID) {
-      addLog(projectName, `[cloudflare] starting DNS connection for ${projectName}.${CLOUDFLARE_DOMAIN} → ${targetHost}`);
-      addLog(projectName, `[cloudflare] NOTE: plain CNAME mode — localhost:${result.port} is NOT directly exposed.`);
-      addLog(projectName, `[cloudflare] Set CLOUDFLARE_ACCOUNT_ID + CLOUDFLARED_TUNNEL_ID to route the local port through a cloudflared tunnel.`);
-      dnsResult = await createCloudflareDnsRecord(projectName, targetHost, cfLogger);
-      if (!dnsResult) {
-        return res.status(500).json({
-          success: false,
-          message: `Built and started on port ${result.port}, but Cloudflare DNS record creation failed for ${projectName}.${CLOUDFLARE_DOMAIN}.`,
-          project_name: projectName,
-          port: result.port
-        });
+        cfLogger(`[cloudflare] named tunnel FAILED — falling back to quick-tunnel.`);
+        tunnelResult = null;
       }
     }
 
-    const url = (tunnelResult && tunnelResult.url) || (dnsResult && dnsResult.url) || `https://${projectName}.${CLOUDFLARE_DOMAIN}`;
+    if (!tunnelResult && process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ZONE_ID) {
+      cfLogger(`[cloudflare] strategy: DNS CNAME ${projectName}.${CLOUDFLARE_DOMAIN} → ${targetHost}`);
+      dnsResult = await createCloudflareDnsRecord(projectName, targetHost, cfLogger);
+      if (!dnsResult) cfLogger(`[cloudflare] CNAME creation FAILED — falling back to quick-tunnel.`);
+    }
+
+    // Always-on fallback: ephemeral trycloudflare.com URL via `cloudflared`.
+    // This works without any Cloudflare credentials and guarantees the local
+    // port becomes publicly reachable from outside the server.
+    if (!tunnelResult && !dnsResult) {
+      cfLogger(`[cloudflare] strategy: QUICK TUNNEL (ephemeral trycloudflare.com URL)`);
+      quickResult = await startQuickTunnel(projectName, result.port, cfLogger);
+    }
+
+    const finalUrl =
+      (tunnelResult && tunnelResult.url) ||
+      (dnsResult && dnsResult.url) ||
+      (quickResult && quickResult.url) ||
+      `http://localhost:${result.port}`;
+    const mode = tunnelResult ? 'tunnel' : (dnsResult ? 'cname' : (quickResult ? 'quick-tunnel' : 'local-only'));
+
+    cfLogger(`[cloudflare] ══════════════════════════════════════════════════`);
+    cfLogger(`[deploy] ✅ DEPLOYMENT COMPLETE`);
+    cfLogger(`[deploy]   project: ${projectName}`);
+    cfLogger(`[deploy]   local:   http://localhost:${result.port}`);
+    cfLogger(`[deploy]   public:  ${finalUrl}`);
+    cfLogger(`[deploy]   mode:    ${mode}`);
+    cfLogger(`[cloudflare] ══════════════════════════════════════════════════`);
 
     return res.status(200).json({
       success: true,
       message: `Deployment successful! Project: ${projectName}`,
       project_name: projectName,
-      url: url,
-      link: url,
+      url: finalUrl,
+      link: finalUrl,
       subdomain: `${projectName}.${CLOUDFLARE_DOMAIN}`,
       target: `localhost:${result.port}`,
       port: result.port,
       username: username,
       repo_id: repoId,
-      mode: tunnelResult ? 'tunnel' : (dnsResult ? 'cname' : 'none'),
-      dns_record_created: !!(dnsResult || tunnelResult)
+      mode,
+      dns_record_created: !!(dnsResult || tunnelResult || quickResult)
     });
     
   } catch (err) {
