@@ -3,6 +3,7 @@ const router = express.Router();
 const { getRepoById } = require('../lib/mongo');
 const { deployApp } = require('../lib/pipeline');
 const { createCloudflareDnsRecord, CLOUDFLARE_DOMAIN } = require('../lib/cloudflare');
+const { connectTunnel, enabled: tunnelEnabled } = require('../lib/cloudflaredTunnel');
 const { addLog } = require('../lib/pipeline');
 
 function sanitizeProjectName(name) {
