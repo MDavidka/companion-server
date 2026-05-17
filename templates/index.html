@@ -944,11 +944,15 @@
     }, 2000);
   });
 
-  /* API DOCS toggle + base URL */
-  document.querySelectorAll('[data-endpoint] .endpoint-head').forEach(h => {
-    h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
+  $('#consoleClearBtn').addEventListener('click', () => {
+    $('#consoleBody').innerHTML = '<div class="log info">$ console cleared</div>';
   });
-  $('#apiBaseUrl').textContent = window.location.origin;
+  $('#consoleScrollBtn').addEventListener('click', () => {
+    const el = $('#consoleBody');
+    el.scrollTop = el.scrollHeight;
+    autoScroll = true;
+    $('#autoScrollNotice').classList.remove('show');
+  });
 
   /* INIT */
   fetchHealth();
