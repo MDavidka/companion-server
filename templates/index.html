@@ -313,17 +313,34 @@
 
     /* CONSOLE */
     .console {
-      background: #161616;
+      background: #0d0d0d;
       font-family: 'Ubuntu Mono', 'JetBrains Mono', 'SF Mono', monospace;
-      font-size: 12px;
-      line-height: 1.6;
-      max-height: 280px;
+      font-size: 12.5px;
+      line-height: 1.55;
+      height: 65vh;
+      min-height: 460px;
+      max-height: 900px;
       overflow-y: auto;
-      padding: 14px 18px;
+      padding: 16px 20px;
       scrollbar-width: thin;
       scrollbar-color: var(--surface-3) transparent;
-      min-height: 140px;
+      border-top: 1px solid #000;
     }
+    .console .log {
+      padding: 1px 0;
+      border-left: 2px solid transparent;
+      padding-left: 8px;
+      margin-left: -8px;
+    }
+    .console .log.error { border-left-color: #ff6b6b; background: rgba(255,107,107,.04); }
+    .console .log.warning { border-left-color: var(--warning); }
+    .console .log.success { border-left-color: var(--success); }
+    .console .log.cloudflare { color: #f6a96b; border-left-color: var(--accent); }
+    .console .log.ts { color: var(--dim); }
+    .console-toolbar {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .console-toolbar .btn { padding: 5px 10px; font-size: 11px; }
     .console::-webkit-scrollbar { width: 6px; }
     .console::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
 
