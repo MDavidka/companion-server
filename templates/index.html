@@ -577,6 +577,7 @@
       </div>
       <span class="updater-badge checking" id="updaterBadge">checking</span>
       <button class="btn" id="updateBtn" disabled>Update</button>
+      <button class="btn" id="resetBtn" title="Restart runner on Ubuntu" style="background:var(--danger);color:#fff;border-color:var(--danger);">Reset</button>
     </div>
   </div>
 
@@ -1136,6 +1137,35 @@
   });
   $('#repoSearch').addEventListener('input', renderRepos);
   $('#deployBtn').addEventListener('click', doDeploy);
+  $('#resetBtn').addEventListener('click', async () => {
+    const btn = $('#resetBtn');
+    if (!confirm('Reset and restart the runner on Ubuntu?')) return;
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Resetting…';
+    try {
+      const res = await fetch('/api/system/reset', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      btn.textContent = data.success ? '✓ Restarting' : '✗ Failed';
+    } catch {
+      btn.textContent = '✓ Restarting';
+    }
+    // Server will go down briefly — poll health to re-enable
+    let tries = 0;
+    const poll = setInterval(async () => {
+      tries++;
+      try {
+        const r = await fetch('/api/health', { cache: 'no-store' });
+        if (r.ok) {
+          clearInterval(poll);
+          btn.textContent = original;
+          btn.disabled = false;
+          fetchHealth(); fetchUpdater(); fetchSites();
+        }
+      } catch {}
+      if (tries > 60) { clearInterval(poll); btn.textContent = original; btn.disabled = false; }
+    }, 2000);
+  });
 
   /* API DOCS toggle + base URL */
   document.querySelectorAll('[data-endpoint] .endpoint-head').forEach(h => {
