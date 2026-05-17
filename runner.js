@@ -9,6 +9,7 @@ const logsRoute = require('./routes/logs');
 const reposRoute = require('./routes/repos');
 const healthRoute = require('./routes/health');
 const updaterRoute = require('./routes/updater');
+const systemRoute = require('./routes/system');
 const autoUpdater = require('./lib/autoUpdater');
 const { getApp, removeApp } = require('./lib/registry');
 const { killAppProcess, deployApp } = require('./lib/pipeline');
