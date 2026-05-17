@@ -50,26 +50,38 @@ router.all('/:repo_id', async (req, res) => {
     // Let's await it to send the response when done, just like app.py did.
     
     // Using a longer timeout in express might be needed, but we'll try awaiting
+    // Build + spawn the mini-server (returns the local port it bound to)
     const result = await deployApp(projectName, gitUrl, gitToken);
 
+    // After a successful build/spawn, connect the mini-server (host:port)
+    // to a Cloudflare DNS CNAME at <subdomain>.<CLOUDFLARE_DOMAIN>.
+    // CNAME targets a hostname (SERVER_HOST), and this runner's proxy
+    // forwards <subdomain>.<domain> traffic to localhost:<port>.
+    const targetHost = process.env.SERVER_HOST || CLOUDFLARE_DOMAIN;
     let dnsResult = null;
-    if (process.env.CLOUDFLARE_ZONE_ID) {
-      dnsResult = await createCloudflareDnsRecord(projectName, process.env.SERVER_HOST || CLOUDFLARE_DOMAIN);
+    if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ZONE_ID) {
+      dnsResult = await createCloudflareDnsRecord(projectName, targetHost);
       if (!dnsResult) {
         return res.status(500).json({
           success: false,
-          message: `Files deployed but Cloudflare DNS record creation failed for ${projectName}.${CLOUDFLARE_DOMAIN}.`
+          message: `Built and started on port ${result.port}, but Cloudflare DNS record creation failed for ${projectName}.${CLOUDFLARE_DOMAIN}.`,
+          project_name: projectName,
+          port: result.port
         });
       }
     }
 
-    const url = dnsResult ? dnsResult.url : result.url;
-    
+    const url = dnsResult ? dnsResult.url : `https://${projectName}.${CLOUDFLARE_DOMAIN}`;
+
     return res.status(200).json({
       success: true,
       message: `Deployment successful! Project: ${projectName}`,
       project_name: projectName,
       url: url,
+      link: url,
+      subdomain: `${projectName}.${CLOUDFLARE_DOMAIN}`,
+      target: `${targetHost}:${result.port}`,
+      port: result.port,
       username: username,
       repo_id: repoId,
       dns_record_created: !!dnsResult
