@@ -34,6 +34,7 @@ app.use('/api/logs', logsRoute);
 app.use('/api/repos', reposRoute);
 app.use('/api/health', healthRoute);
 app.use('/api/updater', updaterRoute);
+app.use('/api/system', systemRoute);
 
 // Redeploy
 app.post('/api/redeploy/:name', async (req, res) => {
