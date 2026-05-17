@@ -1137,6 +1137,12 @@
   $('#repoSearch').addEventListener('input', renderRepos);
   $('#deployBtn').addEventListener('click', doDeploy);
 
+  /* API DOCS toggle + base URL */
+  document.querySelectorAll('[data-endpoint] .endpoint-head').forEach(h => {
+    h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
+  });
+  $('#apiBaseUrl').textContent = window.location.origin;
+
   /* INIT */
   fetchHealth();
   fetchRepos();
