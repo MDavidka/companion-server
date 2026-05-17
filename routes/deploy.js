@@ -3,6 +3,7 @@ const router = express.Router();
 const { getRepoById } = require('../lib/mongo');
 const { deployApp } = require('../lib/pipeline');
 const { createCloudflareDnsRecord, CLOUDFLARE_DOMAIN } = require('../lib/cloudflare');
+const { connectTunnel, enabled: tunnelEnabled } = require('../lib/cloudflaredTunnel');
 const { addLog } = require('../lib/pipeline');
 
 function sanitizeProjectName(name) {
@@ -60,9 +61,25 @@ router.all('/:repo_id', async (req, res) => {
     // forwards <subdomain>.<domain> traffic to localhost:<port>.
     const targetHost = process.env.SERVER_HOST || CLOUDFLARE_DOMAIN;
     let dnsResult = null;
-    if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ZONE_ID) {
-      const cfLogger = (line) => addLog(projectName, line);
+    let tunnelResult = null;
+    const cfLogger = (line) => addLog(projectName, line);
+
+    if (tunnelEnabled()) {
+      // Preferred path: route localhost:<port> through a cloudflared tunnel.
+      addLog(projectName, `[cloudflare] starting TUNNEL connection for ${projectName}.${CLOUDFLARE_DOMAIN} → http://localhost:${result.port}`);
+      tunnelResult = await connectTunnel(projectName, result.port, cfLogger);
+      if (!tunnelResult || !tunnelResult.success) {
+        return res.status(500).json({
+          success: false,
+          message: `Built and started on port ${result.port}, but Cloudflare tunnel ingress failed for ${projectName}.${CLOUDFLARE_DOMAIN}.`,
+          project_name: projectName,
+          port: result.port
+        });
+      }
+    } else if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ZONE_ID) {
       addLog(projectName, `[cloudflare] starting DNS connection for ${projectName}.${CLOUDFLARE_DOMAIN} → ${targetHost}`);
+      addLog(projectName, `[cloudflare] NOTE: plain CNAME mode — localhost:${result.port} is NOT directly exposed.`);
+      addLog(projectName, `[cloudflare] Set CLOUDFLARE_ACCOUNT_ID + CLOUDFLARED_TUNNEL_ID to route the local port through a cloudflared tunnel.`);
       dnsResult = await createCloudflareDnsRecord(projectName, targetHost, cfLogger);
       if (!dnsResult) {
         return res.status(500).json({
@@ -74,7 +91,7 @@ router.all('/:repo_id', async (req, res) => {
       }
     }
 
-    const url = dnsResult ? dnsResult.url : `https://${projectName}.${CLOUDFLARE_DOMAIN}`;
+    const url = (tunnelResult && tunnelResult.url) || (dnsResult && dnsResult.url) || `https://${projectName}.${CLOUDFLARE_DOMAIN}`;
 
     return res.status(200).json({
       success: true,
@@ -83,11 +100,12 @@ router.all('/:repo_id', async (req, res) => {
       url: url,
       link: url,
       subdomain: `${projectName}.${CLOUDFLARE_DOMAIN}`,
-      target: `${targetHost}:${result.port}`,
+      target: `localhost:${result.port}`,
       port: result.port,
       username: username,
       repo_id: repoId,
-      dns_record_created: !!dnsResult
+      mode: tunnelResult ? 'tunnel' : (dnsResult ? 'cname' : 'none'),
+      dns_record_created: !!(dnsResult || tunnelResult)
     });
     
   } catch (err) {

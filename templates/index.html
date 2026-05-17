@@ -37,7 +37,7 @@
     }
 
     .app {
-      max-width: 720px;
+      max-width: 980px;
       margin: 0 auto;
       padding: 28px 20px 60px;
       display: flex;
@@ -313,17 +313,34 @@
 
     /* CONSOLE */
     .console {
-      background: #161616;
+      background: #0d0d0d;
       font-family: 'Ubuntu Mono', 'JetBrains Mono', 'SF Mono', monospace;
-      font-size: 12px;
-      line-height: 1.6;
-      max-height: 280px;
+      font-size: 12.5px;
+      line-height: 1.55;
+      height: 65vh;
+      min-height: 460px;
+      max-height: 900px;
       overflow-y: auto;
-      padding: 14px 18px;
+      padding: 16px 20px;
       scrollbar-width: thin;
       scrollbar-color: var(--surface-3) transparent;
-      min-height: 140px;
+      border-top: 1px solid #000;
     }
+    .console .log {
+      padding: 1px 0;
+      border-left: 2px solid transparent;
+      padding-left: 8px;
+      margin-left: -8px;
+    }
+    .console .log.error { border-left-color: #ff6b6b; background: rgba(255,107,107,.04); }
+    .console .log.warning { border-left-color: var(--warning); }
+    .console .log.success { border-left-color: var(--success); }
+    .console .log.cloudflare { color: #f6a96b; border-left-color: var(--accent); }
+    .console .log.ts { color: var(--dim); }
+    .console-toolbar {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .console-toolbar .btn { padding: 5px 10px; font-size: 11px; }
     .console::-webkit-scrollbar { width: 6px; }
     .console::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
 
@@ -598,263 +615,17 @@
   <div class="card">
     <div class="card-head">
       <div class="card-title">Console</div>
-      <span class="updater-badge" style="background:var(--surface-2);color:var(--dim);" id="consoleTag">idle</span>
+      <div class="console-toolbar">
+        <span class="updater-badge" style="background:var(--surface-2);color:var(--dim);" id="consoleTag">idle</span>
+        <button class="btn" id="consoleClearBtn" title="Clear console">Clear</button>
+        <button class="btn" id="consoleScrollBtn" title="Jump to latest">↓</button>
+      </div>
     </div>
     <div class="console" id="consoleBody">
       <div class="log info">$ waiting for logs…</div>
     </div>
     <div class="scroll-notice" id="autoScrollNotice">↓ new logs — tap to scroll</div>
   </div>
-
-  <!-- API DOCS -->
-  <div class="card">
-    <div class="card-head">
-      <div class="card-title">API Reference</div>
-      <span class="updater-badge" style="background:var(--surface-2);color:var(--dim);">developer</span>
-    </div>
-    <div class="api-docs">
-      <div class="api-intro">
-        Base URL: <code id="apiBaseUrl">—</code> · All responses are JSON · Repository IDs must be numeric strings.
-      </div>
-
-      <!-- HEALTH -->
-      <div class="endpoint" data-endpoint>
-        <div class="endpoint-head">
-          <span class="method get">GET</span>
-          <span class="endpoint-path">/api/health</span>
-          <svg class="endpoint-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="endpoint-body">
-          <div class="endpoint-desc">Health check. Verify the server is alive and reachable.</div>
-          <div class="io-label">Request</div>
-          <div class="io-none">No parameters.</div>
-          <div class="io-label">Response 200</div>
-<div class="io-block">{
-  <span class="key">"status"</span>: <span class="str">"healthy"</span>,
-  <span class="key">"service"</span>: <span class="str">"Companion Server"</span>,
-  <span class="key">"deployed_sites"</span>: <span class="num">0</span>
-}</div>
-        </div>
-      </div>
-
-      <!-- STATUS / SITES -->
-      <div class="endpoint" data-endpoint>
-        <div class="endpoint-head">
-          <span class="method get">GET</span>
-          <span class="endpoint-path">/api/status &nbsp;·&nbsp; /api/sites</span>
-          <svg class="endpoint-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="endpoint-body">
-          <div class="endpoint-desc">Returns all currently registered/deployed sites in the runner.</div>
-          <div class="io-label">Request</div>
-          <div class="io-none">No parameters.</div>
-          <div class="io-label">Response 200</div>
-<div class="io-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"status"</span>: <span class="str">"healthy"</span>,
-  <span class="key">"total"</span>: <span class="num">1</span>,
-  <span class="key">"sites"</span>: [
-    {
-      <span class="key">"name"</span>: <span class="str">"my-app"</span>,
-      <span class="key">"port"</span>: <span class="num">4501</span>,
-      <span class="key">"dir"</span>: <span class="str">"/srv/apps/my-app"</span>,
-      <span class="key">"gitUrl"</span>: <span class="str">"https://github.com/u/r"</span>,
-      <span class="key">"pid"</span>: <span class="num">12345</span>
-    }
-  ]
-}</div>
-        </div>
-      </div>
-
-      <!-- LIST REPOS -->
-      <div class="endpoint" data-endpoint>
-        <div class="endpoint-head">
-          <span class="method get">GET</span>
-          <span class="endpoint-path">/api/repos</span>
-          <svg class="endpoint-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="endpoint-body">
-          <div class="endpoint-desc">List all repositories configured across all users in MongoDB.</div>
-          <div class="io-label">Request</div>
-          <div class="io-none">No parameters.</div>
-          <div class="io-label">Response 200</div>
-<div class="io-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"repositories"</span>: [
-    {
-      <span class="key">"username"</span>: <span class="str">"MDavidka"</span>,
-      <span class="key">"repo_id"</span>: <span class="str">"1126661988"</span>,
-      <span class="key">"git_url"</span>: <span class="str">"https://github.com/MDavidka/tesf"</span>,
-      <span class="key">"name"</span>: <span class="str">"tesf"</span>,
-      <span class="key">"owner"</span>: <span class="str">"MDavidka"</span>,
-      <span class="key">"full_name"</span>: <span class="str">"MDavidka/tesf"</span>
-    }
-  ]
-}</div>
-        </div>
-      </div>
-
-      <!-- LIST USER REPOS -->
-      <div class="endpoint" data-endpoint>
-        <div class="endpoint-head">
-          <span class="method get">GET</span>
-          <span class="endpoint-path">/api/repos/:username</span>
-          <svg class="endpoint-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="endpoint-body">
-          <div class="endpoint-desc">List repositories belonging to a single user.</div>
-          <div class="io-label">URL params</div>
-<div class="io-block"><span class="key">username</span>  <span class="str">string</span>   the user document key</div>
-          <div class="io-label">Response 200</div>
-<div class="io-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"username"</span>: <span class="str">"MDavidka"</span>,
-  <span class="key">"repositories"</span>: [ ...repo objects ]
-}</div>
-        </div>
-      </div>
-
-      <!-- DEPLOY -->
-      <div class="endpoint" data-endpoint>
-        <div class="endpoint-head">
-          <span class="method any">ANY</span>
-          <span class="endpoint-path">/api/deploy/:repo_id</span>
-          <svg class="endpoint-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="endpoint-body">
-          <div class="endpoint-desc">Trigger a full deployment: pulls source from GitHub, installs deps, builds, spawns the app, and creates a Cloudflare DNS record when configured. Accepts GET or POST. No body required.</div>
-          <div class="io-label">URL params</div>
-<div class="io-block"><span class="key">repo_id</span>  <span class="str">string</span>   numeric repo id (validated <span class="str">/^\d+$/</span>)</div>
-          <div class="io-label">Request body</div>
-          <div class="io-none">None — credentials are read from MongoDB (git_url, git_token).</div>
-          <div class="io-label">Response 200</div>
-<div class="io-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"message"</span>: <span class="str">"Deployment successful! Project: tesf"</span>,
-  <span class="key">"project_name"</span>: <span class="str">"tesf"</span>,
-  <span class="key">"url"</span>: <span class="str">"https://tesf.example.com"</span>,
-  <span class="key">"username"</span>: <span class="str">"MDavidka"</span>,
-  <span class="key">"repo_id"</span>: <span class="str">"1126661988"</span>,
-  <span class="key">"dns_record_created"</span>: <span class="bool">true</span>
-}</div>
-          <div class="io-label">Errors</div>
-<div class="io-block"><span class="num">400</span>  Invalid repo_id format
-<span class="num">404</span>  Repository {repo_id} not found
-<span class="num">404</span>  git_token / git_url missing
-<span class="num">500</span>  Deployment failed (see error)</div>
-        </div>
-      </div>
-
-      <!-- REDEPLOY -->
-      <div class="endpoint" data-endpoint>
-        <div class="endpoint-head">
-          <span class="method post">POST</span>
-          <span class="endpoint-path">/api/redeploy/:name</span>
-          <svg class="endpoint-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="endpoint-body">
-          <div class="endpoint-desc">Kill the running app process and redeploy it from the cached source.</div>
-          <div class="io-label">URL params</div>
-<div class="io-block"><span class="key">name</span>  <span class="str">string</span>   project / app name from /api/status</div>
-          <div class="io-label">Response 200</div>
-<div class="io-block">{ <span class="key">"success"</span>: <span class="bool">true</span>, <span class="key">"message"</span>: <span class="str">"Redeployed successfully"</span> }</div>
-        </div>
-      </div>
-
-      <!-- DELETE -->
-      <div class="endpoint" data-endpoint>
-        <div class="endpoint-head">
-          <span class="method delete">DEL</span>
-          <span class="endpoint-path">/api/delete/:name</span>
-          <svg class="endpoint-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="endpoint-body">
-          <div class="endpoint-desc">Stop the app process, remove the source directory, and unregister it.</div>
-          <div class="io-label">URL params</div>
-<div class="io-block"><span class="key">name</span>  <span class="str">string</span>   project / app name</div>
-          <div class="io-label">Response 200</div>
-<div class="io-block">{ <span class="key">"success"</span>: <span class="bool">true</span>, <span class="key">"message"</span>: <span class="str">"Deleted successfully"</span> }</div>
-        </div>
-      </div>
-
-      <!-- LOGS -->
-      <div class="endpoint" data-endpoint>
-        <div class="endpoint-head">
-          <span class="method get">GET</span>
-          <span class="endpoint-path">/api/logs</span>
-          <svg class="endpoint-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="endpoint-body">
-          <div class="endpoint-desc">Retrieve recent logs from the in-memory ring buffer. Filter by project tag (usually repo_id during a deployment).</div>
-          <div class="io-label">Query params</div>
-<div class="io-block"><span class="key">project_id</span>  <span class="str">string</span>   optional — filter tag (default: server)
-<span class="key">limit</span>       <span class="num">int</span>      optional — max lines (default 200, max 500)</div>
-          <div class="io-label">Response 200</div>
-<div class="io-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"project_id"</span>: <span class="str">"1126661988"</span>,
-  <span class="key">"logs"</span>: [
-    <span class="str">"2026-01-06 14:44:22 [INFO] [1126661988] Starting deploy..."</span>
-  ]
-}</div>
-        </div>
-      </div>
-
-      <!-- UPDATER STATUS -->
-      <div class="endpoint" data-endpoint>
-        <div class="endpoint-head">
-          <span class="method get">GET</span>
-          <span class="endpoint-path">/api/updater/status</span>
-          <svg class="endpoint-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="endpoint-body">
-          <div class="endpoint-desc">Current state of the auto-updater (local vs remote commits, last check, status).</div>
-          <div class="io-label">Response 200</div>
-<div class="io-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"status"</span>: <span class="str">"uptodate | available | checking | error"</span>,
-  <span class="key">"localCommit"</span>: <span class="str">"a1b2c3d"</span>,
-  <span class="key">"remoteCommit"</span>: <span class="str">"a1b2c3d"</span>,
-  <span class="key">"lastChecked"</span>: <span class="str">"2026-05-17T10:00:00Z"</span>,
-  <span class="key">"error"</span>: <span class="str">null</span>
-}</div>
-        </div>
-      </div>
-
-      <!-- UPDATER CHECK -->
-      <div class="endpoint" data-endpoint>
-        <div class="endpoint-head">
-          <span class="method post">POST</span>
-          <span class="endpoint-path">/api/updater/check</span>
-          <svg class="endpoint-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="endpoint-body">
-          <div class="endpoint-desc">Force an immediate git fetch to compare HEAD with remote. Returns the same shape as <code>/status</code>.</div>
-          <div class="io-label">Request body</div>
-          <div class="io-none">None.</div>
-        </div>
-      </div>
-
-      <!-- UPDATER UPDATE -->
-      <div class="endpoint" data-endpoint>
-        <div class="endpoint-head">
-          <span class="method post">POST</span>
-          <span class="endpoint-path">/api/updater/update</span>
-          <svg class="endpoint-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="endpoint-body">
-          <div class="endpoint-desc">Pull the latest commit, run <code>npm install</code>, and self-restart the process.</div>
-          <div class="io-label">Request body</div>
-          <div class="io-none">None.</div>
-          <div class="io-label">Response 200</div>
-<div class="io-block">{ <span class="key">"success"</span>: <span class="bool">true</span>, <span class="key">"restarting"</span>: <span class="bool">true</span> }</div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- DEPLOY BAR -->
   <div class="deploy-bar">
     <div class="deploy-selected" id="deployInfo">
       <span class="deploy-placeholder">Select a repository to deploy</span>
@@ -1068,14 +839,20 @@
     const body = $('#consoleBody');
     let cls = 'log info';
     const u = line.toUpperCase();
-    if (u.includes('ERROR')) cls = 'log error';
+    if (line.includes('[cloudflare]')) cls = 'log cloudflare';
+    else if (u.includes('ERROR') || u.includes('EXCEPTION') || u.includes('FAILED')) cls = 'log error';
     else if (u.includes('WARN')) cls = 'log warning';
-    else if (u.includes('SUCCESS') || u.includes('✓')) cls = 'log success';
+    else if (u.includes('SUCCESS') || u.includes('✓') || u.includes('DEPLOYED')) cls = 'log success';
     const div = document.createElement('div');
     div.className = cls;
-    div.textContent = line;
+    const ts = new Date().toLocaleTimeString('en-GB', { hour12: false });
+    const tsSpan = document.createElement('span');
+    tsSpan.className = 'ts';
+    tsSpan.textContent = ts + ' ';
+    div.appendChild(tsSpan);
+    div.appendChild(document.createTextNode(line));
     body.appendChild(div);
-    while (body.children.length > 300) body.removeChild(body.firstChild);
+    while (body.children.length > 800) body.removeChild(body.firstChild);
     if (autoScroll) body.scrollTop = body.scrollHeight;
     else $('#autoScrollNotice').classList.add('show');
   }
@@ -1167,11 +944,15 @@
     }, 2000);
   });
 
-  /* API DOCS toggle + base URL */
-  document.querySelectorAll('[data-endpoint] .endpoint-head').forEach(h => {
-    h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
+  $('#consoleClearBtn').addEventListener('click', () => {
+    $('#consoleBody').innerHTML = '<div class="log info">$ console cleared</div>';
   });
-  $('#apiBaseUrl').textContent = window.location.origin;
+  $('#consoleScrollBtn').addEventListener('click', () => {
+    const el = $('#consoleBody');
+    el.scrollTop = el.scrollHeight;
+    autoScroll = true;
+    $('#autoScrollNotice').classList.remove('show');
+  });
 
   /* INIT */
   fetchHealth();
