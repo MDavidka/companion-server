@@ -100,11 +100,12 @@ router.all('/:repo_id', async (req, res) => {
       url: url,
       link: url,
       subdomain: `${projectName}.${CLOUDFLARE_DOMAIN}`,
-      target: `${targetHost}:${result.port}`,
+      target: `localhost:${result.port}`,
       port: result.port,
       username: username,
       repo_id: repoId,
-      dns_record_created: !!dnsResult
+      mode: tunnelResult ? 'tunnel' : (dnsResult ? 'cname' : 'none'),
+      dns_record_created: !!(dnsResult || tunnelResult)
     });
     
   } catch (err) {
