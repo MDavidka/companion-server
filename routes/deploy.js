@@ -61,7 +61,9 @@ router.all('/:repo_id', async (req, res) => {
     const targetHost = process.env.SERVER_HOST || CLOUDFLARE_DOMAIN;
     let dnsResult = null;
     if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ZONE_ID) {
-      dnsResult = await createCloudflareDnsRecord(projectName, targetHost);
+      const cfLogger = (line) => addLog(projectName, line);
+      addLog(projectName, `[cloudflare] starting DNS connection for ${projectName}.${CLOUDFLARE_DOMAIN} → ${targetHost}`);
+      dnsResult = await createCloudflareDnsRecord(projectName, targetHost, cfLogger);
       if (!dnsResult) {
         return res.status(500).json({
           success: false,
