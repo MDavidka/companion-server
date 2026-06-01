@@ -49,20 +49,39 @@ router.all('/:repo_id', async (req, res) => {
     // Clone + build + spawn mini-server (returns the free local port it bound to)
     const result = await deployApp(projectName, gitUrl, gitToken);
 
-    // No per-site Cloudflare changes. A single wildcard tunnel (*.sycord.site → runner:4500)
-    // handles all routing. Runner's proxy middleware reads the registry and forwards
-    // <project>.sycord.site → 127.0.0.1:<port>.
+    // Single wildcard tunnel routes *.sycord.site → runner:4500. Make sure both
+    // the DNS CNAME and the tunnel ingress rule exist for this host so Cloudflare
+    // can resolve it (otherwise visitors get Error 1033 — "Cloudflare Tunnel error,
+    // host configured as a Cloudflare Tunnel and Cloudflare is unable to resolve it").
     const publicUrl = `https://${projectName}.${CLOUDFLARE_DOMAIN}`;
+
+    if (tunnelEnabled()) {
+      try {
+        const ingressResult = await connectTunnel(
+          projectName,
+          RUNNER_PORT, // point Cloudflare at the runner; runner's proxy forwards to the app port
+          (msg) => addLog(projectName, msg)
+        );
+        if (!ingressResult.success) {
+          addLog(projectName, `⚠ tunnel ingress/DNS setup did not complete: ${ingressResult.error || ingressResult.mode}`);
+        }
+      } catch (e) {
+        addLog(projectName, `⚠ tunnel ingress/DNS setup threw: ${e.message}`);
+      }
+    } else {
+      addLog(projectName, '⚠ CLOUDFLARED_TUNNEL_ID / CLOUDFLARE_ACCOUNT_ID not set — skipping tunnel ingress setup (Error 1033 likely if DNS not pre-configured).');
+    }
 
     addLog(projectName, `════════════════════════════════════════════════`);
     addLog(projectName, `✅ DEPLOYMENT COMPLETE`);
     addLog(projectName, `   project: ${projectName}`);
     addLog(projectName, `   local:   http://127.0.0.1:${result.port}`);
     addLog(projectName, `   public:  ${publicUrl}`);
-    addLog(projectName, `   routing: wildcard tunnel → runner:${process.env.PORT || 4500} → registry → :${result.port}`);
+    addLog(projectName, `   routing: tunnel → runner:${RUNNER_PORT} → registry → :${result.port}`);
     addLog(projectName, `════════════════════════════════════════════════`);
 
     return res.status(200).json({
+
       success: true,
       message: `Deployment successful! Project: ${projectName}`,
       project_name: projectName,
