@@ -34,11 +34,11 @@ router.all('/:repo_id', async (req, res) => {
     const repoDoc = await getRepoById(repoId);
     if (!repoDoc) return res.status(404).json({ success: false, message: `Repository ${repoId} not found` });
 
-    const gitToken = repoDoc.git_token;
+    const gitToken = repoDoc.git_token || process.env.GITHUB_API_TOKEN;
     const gitUrl = repoDoc.git_url;
     const username = repoDoc.username;
 
-    if (!gitToken) return res.status(404).json({ success: false, message: 'GitHub token (git_token) not found for repository' });
+    if (!gitToken) return res.status(404).json({ success: false, message: 'GitHub token not found (set git_token in MongoDB or GITHUB_API_TOKEN env var)' });
     if (!gitUrl) return res.status(404).json({ success: false, message: 'Git URL (git_url) not found for repository' });
 
     const [owner, repoName] = parseGitUrl(gitUrl);
