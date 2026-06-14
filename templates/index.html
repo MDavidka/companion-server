@@ -598,6 +598,84 @@
     </div>
   </div>
 
+  <!-- AI BUILDER TOOLS -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">AI Builder Tools</div>
+      <span class="updater-badge" style="background:var(--accent-soft);color:var(--accent);">proposed</span>
+    </div>
+    <div class="api-docs">
+      <div class="api-intro">
+        Expose these tool schemas to the AI builder for a flawless workspace integration.
+        All endpoints run server-side, sandboxed, and return clean structured payloads
+        instead of running inside the user's browser window.
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-head" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method post">POST</span>
+          <span class="endpoint-path">/api/workspace/execute</span>
+          <span class="endpoint-chevron">›</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="endpoint-desc">
+            <strong>runCommand</strong> — Execution Sandbox API. Runs commands on an
+            isolated server-side Node.js sandbox/container instead of the user's browser,
+            avoiding crashes and serialization blocks.
+          </div>
+          <div class="io-label">Request</div>
+          <div class="io-block">{ "command": "pnpm install", "cwd": "/" }</div>
+          <div class="io-label">Response</div>
+          <div class="io-block">streamed stdout + stderr (plain text chunks)</div>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-head" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method get">GET</span>
+          <span class="endpoint-path">/api/workspace/diagnostics</span>
+          <span class="endpoint-chevron">›</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="endpoint-desc">
+            <strong>typeCheck</strong> — Structured TypeScript Diagnostics API. A dedicated
+            TS Language Service instance parses workspace files and returns clean JSON
+            instead of launching a heavy CLI compiler.
+          </div>
+          <div class="io-label">Response</div>
+          <div class="io-block">{
+  "errors": [
+    {
+      "file": "src/App.tsx",
+      "line": 45,
+      "message": "Type 'string' is not assignable to type 'number'."
+    }
+  ]
+}</div>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-head" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method post">POST</span>
+          <span class="endpoint-path">/api/workspace/deploy</span>
+          <span class="endpoint-chevron">›</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="endpoint-desc">
+            <strong>deploy</strong> — CDN Push API. Single command that bundles the
+            client-side SPA and deploys static files to sycord.site's edge hosting.
+          </div>
+          <div class="io-label">Response</div>
+          <div class="io-block">{
+  "status": "success",
+  "url": "https://project-id.sycord.site"
+}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- REPOSITORIES -->
   <div class="card">
     <div class="card-head">
