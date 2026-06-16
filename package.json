@@ -20,10 +20,12 @@
   },
   "homepage": "https://github.com/MDavidka/server-sycord#readme",
   "dependencies": {
+    "chokidar": "^5.0.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "http-proxy-middleware": "^4.0.0",
     "mongodb": "^7.2.0",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "ws": "^8.21.0"
   }
 }
