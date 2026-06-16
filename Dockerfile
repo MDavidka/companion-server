@@ -19,16 +19,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     git \
     unzip \
+    ripgrep \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js (LTS version 20) – required for npm install and npm run build
-# We use the NodeSource setup script to get the latest Node.js 20.x
+# Install Node.js 20 + alternative package managers (pnpm, yarn)
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
+    && npm install -g pnpm yarn \
     && npm cache clean --force
 
-# Verify installations
-RUN node --version && npm --version
+RUN node --version && npm --version && pnpm --version && yarn --version
 
 # Install Python dependencies
 COPY requirements.txt .
