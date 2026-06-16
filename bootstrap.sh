@@ -13,7 +13,7 @@
 #   NO_START=1 skip `npm start` at the end
 set -euo pipefail
 
-REPO_URL="${REPO_URL:-https://github.com/sycord/runner.git}"
+REPO_URL="${REPO_URL:-https://github.com/MDavidka/companion-server}"
 REPO_DIR="${REPO_DIR:-sycord-runner}"
 BRANCH="${BRANCH:-main}"
 PORT="${PORT:-4500}"
